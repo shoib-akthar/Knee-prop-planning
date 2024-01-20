@@ -8,6 +8,14 @@ html,
 body
 {
     overflow: hidden;
+    
+    -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none; /* Safari */
+       -khtml-user-select: none; /* Konqueror HTML */
+         -moz-user-select: none; /* Firefox */
+          -ms-user-select: none; /* Internet Explorer/Edge */
+              user-select: none; /* Non-prefixed version, currently
+                                    supported by Chrome and Opera */
 }
 body {
     margin: 0;
@@ -17,6 +25,7 @@ body {
     align-items: center;
     height: 100vh;
     background-color: #f0f0f0;
+    font-family: 'Arial', sans-serif;
   }
   
   #button-container {
@@ -53,3 +62,103 @@ body {
 }
 
 
+.increment-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: absolute;
+  right: 10px;
+  z-index: 1;
+}
+
+.button-set {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.button-row {
+  display: flex;
+  align-items: center;
+}
+
+.button-set-title {
+  font-size: 1.5em;
+  margin-bottom: 10px; 
+}
+
+button {
+  font-size: 1em;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+  color: white;
+  background-color: black;
+  border: none;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #588;
+}
+
+#increment-btn {
+  margin-left: 10px;
+}
+
+#decrement-btn {
+  margin-right: 10px;
+}
+
+#counter-text {
+  margin: 0 20px;
+  font-size: 1.5em;
+}
+
+/* Toggle */
+
+input[type=checkbox] {
+  height: 0;
+  width: 0;
+  visibility: hidden;
+}
+
+label {
+  cursor: pointer;
+  text-indent: -9999px;
+  width: 60px; /* Adjust the width */
+  height: 30px; /* Adjust the height */
+  background: grey;
+  display: block;
+  border-radius: 15px; /* Adjust the border radius */
+  position: relative;
+  z-index: 1;
+}
+
+label:after {
+  content: '';
+  position: absolute;
+  top: 4px; /* Adjust the top position */
+  left: 4px; /* Adjust the left position */
+  width: 22px; /* Adjust the width */
+  height: 22px; /* Adjust the height */
+  background: #fff;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+input:checked + label {
+  background: black;
+}
+
+input:checked + label:after {
+  left: calc(100% - 4px);
+  transform: translateX(-100%);
+}
+
+label:active:after {
+  width: 32px; /* Adjust the width */
+}

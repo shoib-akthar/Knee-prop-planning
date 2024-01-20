@@ -10,6 +10,7 @@ import {
   TransformControls
 } from "three/addons/controls/TransformControls.js";
 import {MeshLine, MeshLineGeometry, MeshLineMaterial} from '@lume/three-meshline'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 
 THREE.ColorManagement.enabled = false;
 
@@ -236,7 +237,7 @@ buttonElements.forEach((button, i) => {
       toggleTransformControls();
     }
 
-  console.log(`Position: `, spheres[1].position);
+  // console.log(`Position: `, spheres[1].position);
 
   });
 });
@@ -264,33 +265,6 @@ document.addEventListener('click', (event) => {
   }
 });
 
-// // Function to create a line between two positions
-// function createLineBetweenPositions(fromPosition,toPosition) {
-//   const lineGeometry = new THREE.BufferGeometry();
-//   const vertices = new Float32Array(6);
-
-//   // Set the start and end points of the line
-//   vertices[0] = fromPosition.x;
-//   vertices[1] = fromPosition.y;
-//   vertices[2] = fromPosition.z;
-//   vertices[3] = toPosition.x;
-//   vertices[4] = toPosition.y;
-//   vertices[5] = toPosition.z;
-
-//   lineGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-
-//   const lineMaterial = new THREE.LineBasicMaterial({ 
-//     color: 0x0033FF,
-//     depthTest: false,
-//     renderOrder: 10,
-//    });
-//   const line = new THREE.Line(lineGeometry, lineMaterial);
-
-//   scene.add(line);
- 
-//   return line;
-// }
-
 // Function to create a line between two positions
 function createLineBetweenPositions(fromPosition, toPosition) {
   const points = []
@@ -304,80 +278,132 @@ function createLineBetweenPositions(fromPosition, toPosition) {
     })
     const line = new MeshLine(geometry, material)
 scene.add(line)
+return line
 }
 
 function clearAllLines() {
-  // Assuming `scene` is the Three.js scene where lines are added
   const linesToRemove = scene.children.filter(object => object instanceof MeshLine);
 
   linesToRemove.forEach(line => {
     scene.remove(line);
-    // If you need to dispose of the line geometry and material, uncomment the lines below
-    // line.geometry.dispose();
-    // line.material.dispose();
   });
 }
 
+function clearAllPlanes() {
+    scene.remove(perpendicularPlane);
+}
+
+let varus_or_valgusplane = null
+let lateralPlane = null
+let distalPlane = null
+let midpoint
 
 
 const update = document.querySelector(".update-button");
 update.addEventListener("click", () => {
   clearAllLines()
-  const mechanicalAxisFrom = getPosition(0)
-  const mechanicalAxisT0 = getPosition(1)
+  // clearAllPlanes()
 
-   const anatomicalAxisFrom =  getPosition(2)
-   const anatomicalAxisTo =  getPosition(3)
+  //TBC
+  // const mechanicalAxisFrom = getPosition(0)
+  // const mechanicalAxisT0 = getPosition(1)
 
-   const TEAFrom =  getPosition(4)
-   const TEATo =  getPosition(5)
+  //  const anatomicalAxisFrom =  getPosition(2)
+  //  const anatomicalAxisTo =  getPosition(3)
 
-   const PEAFrom =  getPosition(8)
-   const PEATo =  getPosition(9)
+  //  const TEAFrom =  getPosition(4)
+  //  const TEATo =  getPosition(5)
 
-  // const mechanicalAxisFrom = spheres[0].position
-  // const mechanicalAxisT0 = spheres[1].position
+  //  const PEAFrom =  getPosition(8)
+  //  const PEATo =  getPosition(9)
 
-  //  const anatomicalAxisFrom =  spheres[2].position
-  //  const anatomicalAxisTo =  spheres[3].position
+  const mechanicalAxisFrom = spheres[0].position
+  const mechanicalAxisT0 = spheres[1].position
 
-  //  const TEAFrom =  spheres[4].position
-  //  const TEATo =  spheres[5].position
+   const anatomicalAxisFrom =  spheres[2].position
+   const anatomicalAxisTo =  spheres[3].position
 
-  //  const PEAFrom =  spheres[8].position
-  //  const PEATo =  spheres[9].position
+   const TEAFrom =  spheres[4].position
+   const TEATo =  spheres[5].position
+
+   const PEAFrom =  spheres[8].position
+   const PEATo =  spheres[9].position
 
   createLineBetweenPositions(mechanicalAxisFrom,mechanicalAxisT0)
   createLineBetweenPositions(anatomicalAxisFrom,anatomicalAxisTo)
   createLineBetweenPositions(TEAFrom,TEATo)
   createLineBetweenPositions(PEAFrom,PEATo)
 
+  //Perpendicular Plane
+  const perpendicularPlane = createPlaneToAxis(spheres[0])
+   
   
-  createPlanePerpendicularToXAxis(spheres[0])
-
-  
-  
-  //Step 4 
+  //Anterior Line
   const anteriorLineEnd = getPosition(10)
-  createLineBetweenPositions(mechanicalAxisT0,anteriorLineEnd)
+  const anteriorLine = createLineBetweenPositions(mechanicalAxisT0,anteriorLineEnd)
+  anteriorLine.material.color.set(0xD63484);
   
+
   //varus/valgus plane
-  createPlanePerpendicularToXAxis(spheres[0]) 
+  varus_or_valgusplane = createPlaneToAxis(spheres[0]) 
+  varus_or_valgusplane.material.color.set(0x00eeff);
+
+  //Lateral Line
+  const LateralLineEnd = getPosition(11)
+  const lateralLine = createLineBetweenPositions(mechanicalAxisFrom,LateralLineEnd)
+  lateralLine.material.color.set(0xFFBF00);
+
+     //Lateral plane
+  lateralPlane = createPlaneToAxis(spheres[0]) 
+  lateralPlane.material.color.set(0xf75f54);
+
+     //Distal plane
+  midpoint = new THREE.Vector3().copy(getPosition(6)).add(getPosition(7)).multiplyScalar(0.5);
+  distalPlane = createPlaneToAxis(getPosition(12)) 
+  distalPlane.material.color.set(0x618fc0);
+
+
+  // DistalLateral=Distance between Distal resection plane and Distal Lateral Pt
+const DL = getPosition(7)
+
+//DistalMedial=Distance between Distal resection plane and Distal Medial Pt
+const DM = getPosition(6)
+
+const DistalLateralPlane = new THREE.Plane(defaultPointsPositions[13].position.normalize(), 0);
+
+const distance1 = distanceFromPointToPlane(DM, DistalLateralPlane);
+
+const distance2 = distanceFromPointToPlane(DL, DistalLateralPlane);
+
+parseFloat(distance1.toFixed(2))
+
+console.log('Distance from point to plane:', distance1);
+console.log('Distance from point to plane:', distance2);
+
+ createText1(scene, parseFloat(distance1.toFixed(3)).toString());
+ createText2(scene, parseFloat(distance2.toFixed(3)).toString());
 
 });
 
-function createPlanePerpendicularToXAxis(sphere) {
-  // Extract position of the sphere
-  const spherePosition = sphere.position;
+function createPlaneToAxis(sphere) {
+  let spherePosition
+  if(sphere instanceof THREE.Vector3)
+  {
+    spherePosition = sphere
+  }
+  else{
+    // Extract position of the sphere
+     spherePosition = sphere.position;
+  }
 
   // Create a plane geometry
-  const planeGeometry = new THREE.PlaneGeometry(1, 1); // Adjust the size of the plane as needed
+  const planeGeometry = new THREE.PlaneGeometry(1.5, 1.5); // Adjust the size of the plane as needed
 
   // Create a plane material
   const planeMaterial = new THREE.MeshBasicMaterial({ 
     color: 0x00ff00,
     transparent: true,
-    opacity : 0.5,
+    opacity : 0.7,
     side: THREE.DoubleSide });
 
   // Create the plane mesh
@@ -399,6 +425,7 @@ function createPlanePerpendicularToXAxis(sphere) {
   return plane;
 }
 
+
 //Default position of the points
 const defaultPointsPositions = [
   { name: 'Femur Center', position: new THREE.Vector3(-0.026, 0.058, 0.026) },
@@ -416,9 +443,14 @@ const defaultPointsPositions = [
   { name: 'Posterior Medial Pt', position: new THREE.Vector3(0.323, -0.053, -0.258) },
   { name: 'Posterior Lateral Pt', position: new THREE.Vector3(-0.226, 0, -0.219) },
 
-  { name: 'Hip Center To', position: new THREE.Vector3(0.1, 4.233, 0.135) }
+  { name: 'Anterior End Pt', position: new THREE.Vector3(0.1, 4.233, 0.135) },
+  { name: 'Lateral End Pt', position: new THREE.Vector3(-0.126, 0.058, 0.026) },
+
+  { name: 'Distal Center Pt', position: new THREE.Vector3(0.024, -0.026, -0.22) },
+  { name: 'Clipping Plane Pt', position: new THREE.Vector3(0.024, 0.074, -0.22) },
 
 ];
+
 
 function getPosition(identifier) {
   let positionObject;
@@ -439,4 +471,211 @@ function getPosition(identifier) {
   }
 }
 
+let counterVarus = 0;
+let counterLateral = 0;
+let counterDistal = 0;
+
+ const buttonSetIncV = document.querySelector(".increment-v");
+ buttonSetIncV.addEventListener("click", () =>{
+  if(varus_or_valgusplane!==null){
+    counterVarus++;
+    updateCounterVarus();
+    rotatePlane(1,varus_or_valgusplane,'inc')
+  }
+ } )
+ const buttonSetDecV = document.querySelector(".decrement-v");
+ buttonSetDecV.addEventListener("click", () =>{
+  if(varus_or_valgusplane!==null){
+    counterVarus--;
+    updateCounterVarus();
+    rotatePlane(1,varus_or_valgusplane,'dec')
+  }
+ } )
+
+ const buttonSetIncL = document.querySelector(".increment-l");
+ buttonSetIncL.addEventListener("click", () =>{
+  if(lateralPlane!==null){
+    counterLateral++;
+    updateCounterLateral();
+    rotatePlanelateral(1,lateralPlane,'inc')
+  }
+ } )
+ const buttonSetDecL = document.querySelector(".decrement-l");
+ buttonSetDecL.addEventListener("click", () =>{
+  if(lateralPlane!==null){
+    counterLateral--;
+    updateCounterLateral();
+    rotatePlanelateral(1,lateralPlane,'dec')
+  }
+ } )
+
+ const buttonSetIncD = document.querySelector(".increment-d");
+ buttonSetIncD.addEventListener("click", () =>{
+  if(varus_or_valgusplane!==null){
+    counterDistal++;
+    updateCounterDistal();
+    rotatePlane(1,varus_or_valgusplane,'inc')
+  }
+ } )
+ const buttonSetDecD = document.querySelector(".decrement-d");
+ buttonSetDecD.addEventListener("click", () =>{
+  if(varus_or_valgusplane!==null){
+    counterDistal--;
+    updateCounterDistal();
+    rotatePlane(1,varus_or_valgusplane,'dec')
+  }
+ } )
+
+
+function updateCounterVarus() {
+  document.querySelector('.counter-text-varus').innerText = counterVarus + '\xB0';
+}
+function updateCounterLateral() {
+  document.querySelector('.counter-text-lateral').innerText = counterLateral + '\xB0';
+}
+function updateCounterDistal() {
+  document.querySelector('.counter-text-distal').innerText = counterDistal + 'mm';
+}
+
+
+function rotatePlane(degrees,plane,action) {
+  const radians = THREE.MathUtils.degToRad(degrees);
+  if(action==='inc')
+  {
+    plane.rotation.y += radians;
+  }
+  else if(action==='dec')
+  {
+    plane.rotation.y -= radians;
+  }
+}
+
+function rotatePlanelateral(degrees,plane,action) {
+  const radians = THREE.MathUtils.degToRad(degrees);
+  if(action==='inc')
+  {
+    plane.rotation.x += radians;
+  }
+  else if(action==='dec')
+  {
+    plane.rotation.x -= radians;
+  }
+}
+
+//Resection Functionality
+function createClippingPlane(scene, renderer, position, normal, size = 1.5) {
+
+  const planeGeometry = new THREE.PlaneGeometry(size, size);
+  const planeMaterial = new THREE.MeshBasicMaterial({
+    //color: 0x00ff00,
+    transparent: true,
+    opacity: 0,
+    side: THREE.DoubleSide
+  });
+
+  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+  plane.position.copy(position);
+  plane.lookAt(new THREE.Vector3().addVectors(position, normal));
+
+  scene.add(plane);
+
+  renderer.clippingPlanes.push(new THREE.Plane(normal, -position.dot(normal)));
+
+  return plane;
+}
+
+const clippingPlanePosition = new THREE.Vector3(0, 0.5, 0);
+const clippingPlaneNormal = new THREE.Vector3(0, 0.5, 0);
+
+let clippingPlane
+const checkbox = document.getElementById("switch");
+checkbox.addEventListener("change", function () {
+  if (checkbox.checked) {
+    renderer.localClippingEnabled = true;
+      clippingPlane = createClippingPlane(
+      scene,
+      renderer,
+      clippingPlanePosition,
+      clippingPlaneNormal
+    );
+  } else {
+    renderer.localClippingEnabled = false;
+     if (clippingPlane) {
+      scene.remove(clippingPlane);
+      clippingPlane = undefined;
+      }
+      renderer.clippingPlanes = [];
+}
+});
+
+// Create a FontLoader
+const fontLoader = new FontLoader();
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+
+
+
+function createText1(scene, text) {
+  // Load the font
+  fontLoader.load('helvetiker_regular.typeface.json', function (font) {
+
+      // Create a TextGeometry
+      const textGeometry = new TextGeometry(text, {
+          font: font,
+          size: 0.1,        // Size of the text
+          height: 0.01,     // Thickness of the text
+          curveSegments: 4, // Smoothness of the text curves
+      });
+
+      // Create a MeshBasicMaterial for the text
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+      // Create a Mesh using the TextGeometry and TextMaterial
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+      // Set the position of the text mesh in world coordinates
+      textMesh.position.set(0.5, 0.5, 0); // Replace with your desired position
+
+      // Add the text mesh to the scene
+      scene.add(textMesh);
+      return textMesh;
+  });
+}
+
+function createText2(scene, text) {
+  // Load the font
+  fontLoader.load('helvetiker_regular.typeface.json', function (font) {
+
+      // Create a TextGeometry
+      const textGeometry = new TextGeometry(text, {
+          font: font,
+          size: 0.1,        // Size of the text
+          height: 0.01,     // Thickness of the text
+          curveSegments: 4, // Smoothness of the text curves
+      });
+
+      // Create a MeshBasicMaterial for the text
+      const textMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+
+      // Create a Mesh using the TextGeometry and TextMaterial
+      const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+      // Set the position of the text mesh in world coordinates
+      textMesh.position.set(-0.8, 0.5, 0); // Replace with your desired position
+
+      // Add the text mesh to the scene
+      scene.add(textMesh);
+      return textMesh;
+  });
+}
+
+function distanceFromPointToPlane(point, plane) {
+  const { x, y, z } = point;
+  const { normal, constant } = plane;
+
+  // Calculate the distance using the formula
+  const distance = Math.abs(normal.dot(point) + constant) / normal.length();
+
+  return distance;
+}
 
